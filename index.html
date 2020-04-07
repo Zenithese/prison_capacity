@@ -2,12 +2,118 @@
 <html>
 
 <head>
-    <title>Getting Started</title>
-    <script src="https://unpkg.com/lodash@4.16.6"></script>
+    <meta charset="UTF-8" />
+    <title>Prison Capacity</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        canvas {
+            background: #eee;
+            padding: 0;
+            margin: auto;
+            display: block;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="./css/index.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rough.js/2.2.5/rough.min.js"></script>
 </head>
 
+<canvas id="myCanvas" margin="auto"></canvas>
+
+<script>
+    var canvas = (document.getElementById("myCanvas"));
+    canvas.width = window.innerWidth / 1.5;
+    canvas.height = window.innerHeight / 1.5;
+    var ctx = canvas.getContext("2d");
+    var x = 10;
+    var y = 10;
+    var inmateRadius = 10;
+    // var dx = 1;
+    // var dy = 1;
+    var inmate = 0
+    var inmates = 1000;
+    var inmatePos = []
+    for (let i = 0; i < inmates; i++) {
+        inmatePos[i] = { "x": 0, "y": 0, "dx": Math.random() * 1.5, "dy": Math.random() * 1.5 }
+    }
+    var colors = ["orange", "brown", "red", "yellow"];
+    var personalSpace = (canvas.width * canvas.height) / inmates;
+    var personalWidth = Math.sqrt(personalSpace / (canvas.width / canvas.height)) * (canvas.width / canvas.height)
+    var personalHeight = Math.sqrt(personalSpace / (canvas.width / canvas.height))
+
+
+    function drawInmates() {
+        y = 10
+        while (inmate < inmates) {
+            for (let i = 0; i + personalWidth < canvas.width && inmate < inmates; i += personalWidth) {
+                ctx.beginPath();
+                ctx.arc(inmatePos[inmate]["x"] += x, inmatePos[inmate]["y"] += y, inmateRadius, 0, Math.PI * 2);
+                x += personalWidth
+                ctx.fillStyle = colors[inmate % colors.length];
+                ctx.fill();
+                ctx.closePath();
+                inmate++;
+            }
+            x = 10;
+            if (y + personalHeight < canvas.height) y += personalHeight;
+        }
+        x = 20;
+        y = 20;
+    }
+
+    function moveInmates() {
+        // console.log(x, y)
+        inmate = 0
+        while (inmate < inmates) {
+            ctx.beginPath();
+            ctx.arc(inmatePos[inmate]["x"], inmatePos[inmate]["y"], inmateRadius, 0, Math.PI * 2);
+            ctx.fillStyle = colors[inmate % colors.length];
+            ctx.fill();
+            ctx.closePath();
+            inmate++
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        moveInmates();
+        inmate = 0
+        while (inmate < inmates) {
+            inmatePos[inmate]["x"] += inmatePos[inmate]["dx"];
+            inmatePos[inmate]["y"] += inmatePos[inmate]["dy"];
+            if (inmatePos[inmate]["x"] + inmatePos[inmate]["dx"] > canvas.width - inmateRadius || inmatePos[inmate]["x"] + inmatePos[inmate]["dx"] < inmateRadius) {
+                inmatePos[inmate]["dx"] = -inmatePos[inmate]["dx"];
+            }
+            if (inmatePos[inmate]["y"] + inmatePos[inmate]["dy"] < inmateRadius || inmatePos[inmate]["y"] + inmatePos[inmate]["dy"] > canvas.height - inmateRadius) {
+                inmatePos[inmate]["dy"] = -inmatePos[inmate]["dy"];
+            }
+            inmate++
+        }
+        // x += dx;
+        // y += dy;
+        // if (x + dx > canvas.width - inmateRadius || x + dx < inmateRadius) {
+        //     dx = -dx;
+        // }
+        // if (y + dy < inmateRadius || y + dy > canvas.height - inmateRadius) {
+        //     dy = -dy;
+        // }
+        requestAnimationFrame(draw);
+    }
+
+    drawInmates()
+    draw()
+</script>
+
 <body>
-    <script src="./dist/main.js"></script>
+    <!-- <script src="./dist/main.js"></script> -->
 </body>
 
 </html>
