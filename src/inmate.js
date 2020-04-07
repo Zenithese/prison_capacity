@@ -15,6 +15,8 @@ class Inmate {
         
         this.currentDirection = 0;
         this.currentLoopIndex = 0;
+
+        this.levee = 0;
     };
 
     // draw() {
