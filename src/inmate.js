@@ -9,6 +9,12 @@ class Inmate {
 
         this.mass = this.radius * this.radius * this.radius;
         this.color = ["orange", "brown", "red", "yellow"][Math.floor(Math.random() * 4)];
+
+        this.img = new Image();
+        this.img.src = "https://opengameart.org/sites/default/files/Green-Cap-Character-16x18.png";
+        
+        this.currentDirection = 0;
+        this.currentLoopIndex = 0;
     };
 
     // draw() {

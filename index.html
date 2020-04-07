@@ -36,49 +36,39 @@
     var ctx = canvas.getContext("2d");
     var x = 10;
     var y = 10;
-    // var dx = 1;
-    // var dy = 1;
     var inmate = 0
-    var inmates = 500;
+    var inmates = 100;
     var inmatePos = []
     for (let i = 0; i < inmates; i++) {
-        // inmatePos[i] = { "x": 0, "y": 0, "dx": Math.random() * 1.5, "dy": Math.random() * 1.5 }
         inmatePos[i] = new Inmate(0, 0, 10)
     }
-    var colors = ["orange", "brown", "red", "yellow"];
     var personalSpace = (canvas.width * canvas.height) / inmates;
     var personalWidth = Math.sqrt(personalSpace / (canvas.width / canvas.height)) * (canvas.width / canvas.height)
     var personalHeight = Math.sqrt(personalSpace / (canvas.width / canvas.height))
 
-
     function drawInmates() {
         y = 10
         while (inmate < inmates) {
-            for (let i = 0; i + personalWidth < canvas.width && inmate < inmates; i += personalWidth) {
-                ctx.beginPath();
-                ctx.arc(inmatePos[inmate]["x"] += x, inmatePos[inmate]["y"] += y, inmatePos[inmate]["radius"], 0, Math.PI * 2);
+            for (let i = 0; i  < canvas.width && inmate < inmates; i += personalWidth) {
+                drawFrame(CYCLE_LOOP[inmatePos[inmate]["currentLoopIndex"]], inmatePos[inmate]["currentDirection"], inmatePos[inmate]["x"] += x, inmatePos[inmate]["y"] += y);
                 x += personalWidth
-                ctx.fillStyle = colors[inmate % colors.length];
-                ctx.fill();
-                ctx.closePath();
                 inmate++;
             }
             x = 10;
-            if (y + personalHeight < canvas.height) y += personalHeight;
+            if (y + personalHeight < canvas.height) {
+                y += personalHeight;
+            } else {
+                y = canvas.height - 10;
+            }
         }
         x = 20;
         y = 20;
     }
 
     function moveInmates() {
-        // console.log(x, y)
         inmate = 0
         while (inmate < inmates) {
-            ctx.beginPath();
-            ctx.arc(inmatePos[inmate]["x"], inmatePos[inmate]["y"], inmatePos[inmate]["radius"], 0, Math.PI * 2);
-            ctx.fillStyle = colors[inmate % colors.length];
-            ctx.fill();
-            ctx.closePath();
+            drawFrame(CYCLE_LOOP[inmatePos[inmate]["currentLoopIndex"]], inmatePos[inmate]["currentDirection"], inmatePos[inmate]["x"], inmatePos[inmate]["y"]);
             inmate++
         }
     }
@@ -92,10 +82,21 @@
             inmatePos[inmate]["y"] += inmatePos[inmate]["dy"];
             if (inmatePos[inmate]["x"] + inmatePos[inmate]["dx"] > canvas.width - inmatePos[inmate]["radius"] || inmatePos[inmate]["x"] + inmatePos[inmate]["dx"] < inmatePos[inmate]["radius"]) {
                 inmatePos[inmate]["dx"] = -inmatePos[inmate]["dx"];
+                if (inmatePos[inmate]["dx"] > 0) {
+                    inmatePos[inmate]["currentDirection"] = FACING_RIGHT;
+                } else {
+                    inmatePos[inmate]["currentDirection"] = FACING_LEFT;
+                }
             }
             if (inmatePos[inmate]["y"] + inmatePos[inmate]["dy"] < inmatePos[inmate]["radius"] || inmatePos[inmate]["y"] + inmatePos[inmate]["dy"] > canvas.height - inmatePos[inmate]["radius"]) {
                 inmatePos[inmate]["dy"] = -inmatePos[inmate]["dy"];
+                if (inmatePos[inmate]["dy"] > 0) {
+                    inmatePos[inmate]["currentDirection"] = FACING_DOWN;
+                } else {
+                    inmatePos[inmate]["currentDirection"] = FACING_UP;
+                }
             }
+            inmatePos[inmate]["currentLoopIndex"] = (inmatePos[inmate]["currentLoopIndex"] += 1) % 4
             inmate++
         }
         collisionDetection();
@@ -109,7 +110,7 @@
     function collisionDetection() {
         for (let i = 0; i < inmates - 1; i++) {
             for (let j = i + 1; j < inmates; j++) {
-                if (distance(inmatePos[i], inmatePos[j]) < inmatePos[i]["radius"] * 2) {
+                if (distance(inmatePos[i], inmatePos[j]) <= inmatePos[i]["radius"] * 2) {
                     let theta1 = inmatePos[i].angle();
                     let theta2 = inmatePos[j].angle();
                     let phi = Math.atan2(inmatePos[j].y - inmatePos[i].y, inmatePos[j].x - inmatePos[i].x);
@@ -132,8 +133,32 @@
         }
     }
 
-    drawInmates()
-    draw()
+    let img = new Image();
+    img.src = 'https://opengameart.org/sites/default/files/Green-Cap-Character-16x18.png';
+    img.onload = function () {
+        drawInmates();
+        draw();
+    };
+
+    const SCALE = 2;
+    const WIDTH = 16;
+    const HEIGHT = 18;
+    const SCALED_WIDTH = SCALE * WIDTH;
+    const SCALED_HEIGHT = SCALE * HEIGHT;
+    
+    const FACING_DOWN = 0;
+    const FACING_UP = 1;
+    const FACING_LEFT = 2;
+    const FACING_RIGHT = 3;
+    
+    const CYCLE_LOOP = [0, 1, 0, 2];
+    let frameCount = 0;
+
+    function drawFrame(frameX, frameY, canvasX, canvasY) {
+        ctx.drawImage(img,
+            frameX * WIDTH, frameY * HEIGHT, WIDTH, HEIGHT,
+            canvasX, canvasY, SCALED_WIDTH, SCALED_HEIGHT);
+    }
 </script>
 
 <body>
