@@ -16,6 +16,7 @@ canvas {
 }
 
 .ml12 {
+    color: whitesmoke;
     font-weight: 200;
     font-size: 1.8em;
     text-transform: uppercase;
@@ -32,9 +33,10 @@ canvas {
     line-height: 1em;
 }
 input {
+    color: whitesmoke;
     outline: 0;
     border-width: 0 0 2px;
-    border-color: black;
+    border-color: whitesmoke;
     background: none;
     font-weight: 200;
     font-size: 1.8em;

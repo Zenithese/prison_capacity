@@ -13,14 +13,6 @@ var animation = anime.timeline({})
         delay: (el, i) => 500 + 30 * i,
         complete: () => animation.pause()
     })
-    // .add({
-    //     targets: '.ml12numbers',
-    //     // translateX: [0, -30],
-    //     opacity: [1, 0],
-    //     easing: "easeInOutExpo",
-    //     duration: 1100,
-    //     delay: 0,
-    // })
     .add({
         targets: '.ml12 .letter',
         // translateX: [0, -30],
@@ -30,22 +22,26 @@ var animation = anime.timeline({})
         delay: (el, i) => 100 + 30 * i,
     });
 
-var number = anime({
-    targets: '.ml12numbers',
-    // translateX: [0, -30],
-    opacity: [1, 0],
-    easing: "easeInOutExpo",
-    duration: 1100,
-    autoplay: false,
-    delay: 500,
-})
+var number = anime.timeline({})
+    .add({
+        targets: '.ml12numbers',
+        opacity: [0, 1],
+        easing: "easeOutExpo",
+        duration: 1200,
+        delay: 500,
+        complete: () => number.pause()
+    })
+    .add({
+        targets: '.ml12numbers',
+        opacity: [1, 0],
+        easing: "easeInOutExpo",
+        duration: 1100,
+        autoplay: false,
+        delay: 500,
+    });
 
 function setOccupancy() {
     inmates = Number(document.querySelector('#number').value)
-    // var numberWrapper = document.querySelector('.ml12numbers');
-    // numberWrapper.innerHTML = document.querySelector('#number').value;
-    // numberWrapper.innerHTML = numberWrapper.textContent.replace(/\S/g, "<span class='number'>$&</span>");
-    // console.log(numberWrapper.innerHTML)
     animation.play()
     number.play()
     setInmates();
