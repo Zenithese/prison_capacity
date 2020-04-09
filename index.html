@@ -21,15 +21,90 @@
             left: 0;
             right: 0;
         }
+
+        .ml12 {
+            font-weight: 200;
+            font-size: 1.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.5em;
+            text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .ml12 .letter {
+            display: inline-block;
+            line-height: 1em;
+        }
+        input {
+            outline: 0;
+            border-width: 0 0 2px;
+            border-color: black;
+            background: none;
+            font-weight: 200;
+            font-size: 1.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.5em;
+        }
+        input:focus {
+            border-color: green
+        }
+
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+        }
     </style>
     <link rel="stylesheet" type="text/css" href="./css/index.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/rough.js/2.2.5/rough.min.js"></script>
     <script src="src/inmate.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
 </head>
 
 <canvas id="myCanvas" margin="auto"></canvas>
+<div class="ml12">
+    <form onsubmit="setOccupancy(); return false">
+        <label for="number" ># of inmates: <input type="number" id="number" name="number"></input></label>
+    </form>
+</div>
 
 <script>
+    // Wrap every letter in a span
+    var textWrapper = document.querySelector('.ml12');
+    // textWrapper.innerHTML = textWrapper.textContent.replace(/\S/g, "<span class='letter'>$&</span>");
+
+    var animation = anime.timeline({})
+        .add({
+            // targets: '.ml12 .letter',
+            targets: '.ml12',
+            // translateX: [40, 0],
+            // translateZ: 0,
+            opacity: [0, 1],
+            easing: "easeOutExpo",
+            duration: 1200,
+            delay: (el, i) => 500 + 30 * i,
+            complete: () => animation.pause()
+        })
+        .add({
+            targets: '.ml12',
+            // translateX: [0, -30],
+            opacity: [1, 0],
+            easing: "easeInExpo",
+            duration: 1100,
+            delay: (el, i) => 100 + 30 * i,
+        });
+    
+    function setOccupancy() {
+        animation.play()
+        inmates = Number(document.querySelector('#number').value)
+        setInmates();
+        drawInmates();
+        draw();
+    }
+
     var canvas = (document.getElementById("myCanvas"));
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -37,14 +112,23 @@
     var x = 10;
     var y = 10;
     var inmate = 0
-    var inmates = 2000;
-    var inmatePos = []
-    for (let i = 0; i < inmates; i++) {
-        inmatePos[i] = new Inmate(0, 0, 10)
+    var inmates;
+    var inmatePos;
+    var personalSpace;
+    var personalWidth;
+    var personalHeight;
+
+    function setInmates() {
+        inmate = 0;
+        inmates = Number(document.querySelector('#number').value);
+        inmatePos = [];
+        for (let i = 0; i < inmates; i++) {
+            inmatePos[i] = new Inmate(0, 0, 10);
+        }
+        personalSpace = (canvas.width * canvas.height) / inmates;
+        personalWidth = Math.sqrt(personalSpace / (canvas.width / canvas.height)) * (canvas.width / canvas.height);
+        personalHeight = Math.sqrt(personalSpace / (canvas.width / canvas.height));
     }
-    var personalSpace = (canvas.width * canvas.height) / inmates;
-    var personalWidth = Math.sqrt(personalSpace / (canvas.width / canvas.height)) * (canvas.width / canvas.height)
-    var personalHeight = Math.sqrt(personalSpace / (canvas.width / canvas.height))
 
     function drawInmates() {
         y = 10
@@ -153,12 +237,12 @@
 
     let img = new Image();
     img.src = 'https://opengameart.org/sites/default/files/Green-Cap-Character-16x18.png';
-    img.onload = function () {
-        drawInmates();
-        draw();
-    };
+    // img.onload = function () {
+    //     drawInmates();
+    //     draw();
+    // };
 
-    const SCALE = 1;
+    const SCALE = 1.5;
     const WIDTH = 16;
     const HEIGHT = 18;
     const SCALED_WIDTH = SCALE * WIDTH;
