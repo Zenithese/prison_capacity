@@ -1,11 +1,12 @@
 class Inmate {
-    constructor(x, y, radius) {
+    constructor(x, y, radius, id) {
+        this.id = id
         this.radius = radius;
         this.x = x;
         this.y = y;
 
-        this.dx = Math.random() * 1.2 * (Math.random() >= .5 ? 1 : -1);
-        this.dy = Math.random() * 1.2 * (Math.random() >= .5 ? 1 : -1);
+        this.dx = Math.random() * (Math.random() >= .5 ? 1 : -1);
+        this.dy = Math.random() * (Math.random() >= .5 ? 1 : -1);
 
         this.mass = this.radius * this.radius * this.radius;
         this.color = ["orange", "brown", "red", "yellow"][Math.floor(Math.random() * 4)];
@@ -17,6 +18,8 @@ class Inmate {
         this.currentLoopIndex = 0;
 
         this.levee = 0;
+
+        this.overlapped = {};
     };
 
     speed() {
