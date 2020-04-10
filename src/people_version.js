@@ -19,21 +19,15 @@ function setInmates() {
     }
     personalSpace = (canvas.width * canvas.height) / inmates;
     personalWidth = Math.sqrt(personalSpace / (canvas.width / canvas.height)) * (canvas.width / canvas.height);
-    personalHeight = Math.sqrt(personalSpace / (canvas.width / canvas.height));
+    personalHeight = Math.sqrt(personalSpace / (canvas.width / canvas.height)) - 1;
 }
 
 function drawInmates() {
-    inmate = 0
     y = 10
     while (inmate < inmates) {
         for (let i = 0; i + personalWidth < canvas.width && inmate < inmates; i += personalWidth) {
-            ctx.beginPath();
-            ctx.arc(inmatePos[inmate]["x"] += x, inmatePos[inmate]["y"] += y, inmatePos[inmate]["radius"], 0, Math.PI * 2);
-            x += personalWidth
-            ctx.fillStyle = ["orange", "brown", "red", "yellow"][Math.floor(Math.random() * 4)];
-            ctx.fill();
-            ctx.closePath();
-            x += personalWidth
+            drawFrame(CYCLE_LOOP[inmatePos[inmate]["currentLoopIndex"]], inmatePos[inmate]["currentDirection"], inmatePos[inmate]["x"] += x, inmatePos[inmate]["y"] += y);
+            x += personalWidth;
             inmate++;
         }
         x = 10;
@@ -50,11 +44,7 @@ function drawInmates() {
 function moveInmates() {
     inmate = 0
     while (inmate < inmates) {
-        ctx.beginPath();
-        ctx.arc(inmatePos[inmate]["x"], inmatePos[inmate]["y"], inmatePos[inmate]["radius"], 0, Math.PI * 2);
-        ctx.fillStyle = ["orange", "brown", "red", "yellow"][Math.floor(Math.random() * 4)];
-        ctx.fill();
-        ctx.closePath();
+        drawFrame(CYCLE_LOOP[inmatePos[inmate]["currentLoopIndex"]], inmatePos[inmate]["currentDirection"], inmatePos[inmate]["x"], inmatePos[inmate]["y"]);
         inmate++
     }
 }
@@ -66,11 +56,18 @@ function draw() {
     while (inmate < inmates) {
         inmatePos[inmate]["x"] += inmatePos[inmate]["dx"];
         inmatePos[inmate]["y"] += inmatePos[inmate]["dy"];
-        if (inmatePos[inmate]["x"] + inmatePos[inmate]["dx"] > canvas.width - inmatePos[inmate]["radius"] || inmatePos[inmate]["x"] + inmatePos[inmate]["dx"] < inmatePos[inmate]["radius"]) {
+        if (inmatePos[inmate]["x"] + inmatePos[inmate]["dx"] > canvas.width - inmatePos[inmate]["radius"] * 3 || inmatePos[inmate]["x"] + inmatePos[inmate]["dx"] < 0) {
             inmatePos[inmate]["dx"] = -inmatePos[inmate]["dx"];
+            inmatePos[inmate]["dx"] > 0 ? inmatePos[inmate]["currentDirection"] = FACING_RIGHT : inmatePos[inmate]["currentDirection"] = FACING_LEFT;
         }
-        if (inmatePos[inmate]["y"] + inmatePos[inmate]["dy"] < inmatePos[inmate]["radius"] || inmatePos[inmate]["y"] + inmatePos[inmate]["dy"] > canvas.height - inmatePos[inmate]["radius"]) {
+        if (inmatePos[inmate]["y"] + inmatePos[inmate]["dy"] < 0 || inmatePos[inmate]["y"] + inmatePos[inmate]["dy"] > canvas.height - inmatePos[inmate]["radius"]) {
             inmatePos[inmate]["dy"] = -inmatePos[inmate]["dy"];
+            inmatePos[inmate]["dy"] > 0 ? inmatePos[inmate]["currentDirection"] = FACING_DOWN : inmatePos[inmate]["currentDirection"] = FACING_UP;
+        }
+        inmatePos[inmate]["levee"]++
+        if (inmatePos[inmate]["levee"] >= 14) {
+            inmatePos[inmate]["currentLoopIndex"] = (inmatePos[inmate]["currentLoopIndex"] + 1) % 4
+            inmatePos[inmate]["levee"] = 0;
         }
         inmate++
     }
@@ -85,9 +82,9 @@ function distance(a, b) {
 function collisionDetection() {
     for (let i = 0; i < inmates - 1; i++) {
         for (let j = i + 1; j < inmates; j++) {
-            if (overlapping(inmatePos[i], inmatePos[j])) burst(inmatePos[i], inmatePos[j])
-            if (distance(inmatePos[i], inmatePos[j]) <= inmatePos[i]["radius"] * 2
-            && !overlapping(inmatePos[i], inmatePos[j])) {
+            if (overlapping(inmatePos[i], inmatePos[j])) staticCollision(inmatePos[i], inmatePos[j])
+            if (distance(inmatePos[i], inmatePos[j]) <= inmatePos[i]["radius"] + inmatePos[j]["radius"]
+                && !overlapping(inmatePos[i], inmatePos[j])) {
                 let theta1 = inmatePos[i].angle();
                 let theta2 = inmatePos[j].angle();
                 let phi = Math.atan2(inmatePos[j].y - inmatePos[i].y, inmatePos[j].x - inmatePos[i].x);
@@ -101,12 +98,29 @@ function collisionDetection() {
                 let jdx = (v2 * Math.cos(theta2 - phi) * (m2 - m1) + 2 * m1 * v1 * Math.cos(theta1 - phi)) / (m1 + m2) * Math.cos(phi) + v2 * Math.sin(theta2 - phi) * Math.cos(phi + Math.PI / 2);
                 let jdy = (v2 * Math.cos(theta2 - phi) * (m2 - m1) + 2 * m1 * v1 * Math.cos(theta1 - phi)) / (m1 + m2) * Math.sin(phi) + v2 * Math.sin(theta2 - phi) * Math.sin(phi + Math.PI / 2);
 
-                inmatePos[i]["dx"] = idx;
-                inmatePos[i]["dy"] = idy;
-                inmatePos[j]["dx"] = jdx;
-                inmatePos[j]["dy"] = jdy;
+                inmatePos[i]["dx"] = idx > 1.2 ? 1.2 : idx < -1.2 ? -1.2 : idx;
+                inmatePos[i]["dy"] = idy > 1.2 ? 1.2 : idy < -1.2 ? -1.2 : idy;
+                inmatePos[j]["dx"] = jdx > 1.2 ? 1.2 : jdx < -1.2 ? -1.2 : jdx;
+                inmatePos[j]["dy"] = jdy > 1.2 ? 1.2 : jdy < -1.2 ? -1.2 : jdy;
 
-                burst(inmatePos[i], inmatePos[j])
+                // inmatePos[i]["dx"] = inmatePos[i]["dx"] > 0 ? Math.random() * -1.2 : Math.random() * 1.2;
+                // inmatePos[i]["dy"] = inmatePos[i]["dy"] > 0 ? Math.random() * -1.2 : Math.random() * 1.2;
+                // inmatePos[j]["dx"] = inmatePos[j]["dx"] > 0 ? Math.random() * -1.2 : Math.random() * 1.2;
+                // inmatePos[j]["dy"] = inmatePos[j]["dy"] > 0 ? Math.random() * -1.2 : Math.random() * 1.2;
+
+                if (Math.abs(inmatePos[i]["dy"]) > Math.abs(inmatePos[i]["dx"])) {
+                    inmatePos[i]["dy"] > 0 ? inmatePos[i]["currentDirection"] = FACING_DOWN : inmatePos[i]["currentDirection"] = FACING_UP;
+                } else {
+                    inmatePos[i]["dx"] > 0 ? inmatePos[i]["currentDirection"] = FACING_RIGHT : inmatePos[i]["currentDirection"] = FACING_LEFT;
+                }
+
+                if (Math.abs(inmatePos[j]["dy"]) > Math.abs(inmatePos[j]["dx"])) {
+                    inmatePos[j]["dy"] > 0 ? inmatePos[j]["currentDirection"] = FACING_DOWN : inmatePos[j]["currentDirection"] = FACING_UP;
+                } else {
+                    inmatePos[j]["dx"] > 0 ? inmatePos[j]["currentDirection"] = FACING_RIGHT : inmatePos[j]["currentDirection"] = FACING_LEFT;
+                }
+
+                staticCollision(inmatePos[i], inmatePos[j])
             }
         }
     }
@@ -136,5 +150,9 @@ function burst(ob1, ob2) {
     }
 }
 
-drawInmates()
-draw()
+let img = new Image();
+img.src = 'https://opengameart.org/sites/default/files/Green-Cap-Character-16x18.png';
+    // img.onload = function () {
+    //     drawInmates();
+    //     draw();
+    // };
